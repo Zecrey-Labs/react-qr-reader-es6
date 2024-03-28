@@ -18,7 +18,9 @@ class Wrapper extends Component {
           </button>
         )}
         {selectFacingMode && (
-          <select onChange={e => this.setState({ facingMode: e.target.value })}>
+          <select
+            onChange={(e) => this.setState({ facingMode: e.target.value })}
+          >
             <option value="user">User</option>
             <option value="environment">Environment</option>
           </select>
@@ -32,7 +34,9 @@ class Wrapper extends Component {
               placeholder="Delay in ms"
               type="number"
               value={this.state.delay}
-              onChange={e => this.setState({ delay: parseInt(e.target.value) })}
+              onChange={(e) =>
+                this.setState({ delay: parseInt(e.target.value) })
+              }
             />
           </div>
         )}

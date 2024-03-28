@@ -5,27 +5,30 @@
 // TypeScript Version: 2.8
 
 import * as React from "react";
-declare module 'react-qr-reader-es6';
+declare module "react-qr-reader-es6";
 declare namespace QrReader {
   interface props {
     onScan: (data: string | null) => void;
     onError: (err: any) => void;
     onLoad?: (() => void) | undefined;
-    onImageLoad?: ((event: React.SyntheticEvent<HTMLImageElement>) => void) | undefined;
+    onImageLoad?:
+      | ((event: React.SyntheticEvent<HTMLImageElement>) => void)
+      | undefined;
     delay?: number | false | undefined;
-    facingMode?: 'user' | 'environment' | undefined;
+    facingMode?: "user" | "environment" | undefined;
     legacyMode?: boolean | undefined;
     resolution?: number | undefined;
-    showViewFinder?: boolean | undefined;
+    showDefaultViewFinder?: boolean | undefined;
     style?: any;
     className?: string | undefined;
+    ViewFinder?: (props: any) => React.ReactElement<any, any> | null;
   }
 }
 
 export as namespace QrReader;
 
 declare class QrReader extends React.Component<QrReader.props> {
-    openImageDialog: () => void;
+  openImageDialog: () => void;
 }
 
 export = QrReader;
