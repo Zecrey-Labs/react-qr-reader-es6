@@ -1,6 +1,6 @@
 {
   "name": "@zkkontos/react-qr-reader-es6",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "A react component for reading QR codes from the webcam.",
   "main": "./lib/index.js",
   "files": [
