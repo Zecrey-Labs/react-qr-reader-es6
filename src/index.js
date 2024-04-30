@@ -59,9 +59,6 @@ module.exports = class Reader extends Component {
     this.openImageDialog = this.openImageDialog.bind(this);
     this.handleWorkerMessage = this.handleWorkerMessage.bind(this);
     this.setRefFactory = this.setRefFactory.bind(this);
-
-    this.retryCount = 0;
-    this.maxRetries = 10;
   }
   componentDidMount() {
     // Initiate web worker execute handler according to mode.
@@ -166,19 +163,18 @@ module.exports = class Reader extends Component {
 
     vConstraintsPromise
       .then((video) => navigator.mediaDevices.getUserMedia({ video }))
-      .then(this.handleVideo)
+      .then(this.handleVideo, 0)
       .catch(onError);
   }
-  handleVideo(stream) {
+  handleVideo(stream, retryCount) {
     console.log("stream ready");
     const { preview } = this.els;
     const { facingMode } = this.props;
 
     // Preview element hasn't been rendered so wait for it.
-    if (!preview && this.retryCount < this.maxRetries) {
-      this.retryCount++;
-      return setTimeout(() => this.handleVideo(stream), 200);
-    } else if (this.retryCount >= this.maxRetries) {
+    if (!preview && retryCount < 10) {
+      return setTimeout(() => this.handleVideo(stream, retryCount + 1), 200);
+    } else if (retryCount >= 10) {
       console.log("Maximum retries reached, stopping.");
       return;
     }
