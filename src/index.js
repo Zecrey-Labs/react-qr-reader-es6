@@ -39,6 +39,7 @@ module.exports = class Reader extends Component {
   };
 
   els = {};
+  isMountedComponent = false;
 
   constructor(props) {
     super(props);
@@ -70,6 +71,7 @@ module.exports = class Reader extends Component {
     } else {
       this.initiateLegacyMode();
     }
+    this.isMountedComponent = true;
   }
   componentDidUpdate(prevProps) {
     // React according to change in props
@@ -109,6 +111,7 @@ module.exports = class Reader extends Component {
     return changedProps.length > 0;
   }
   componentWillUnmount() {
+    this.isMountedComponent = false;
     // Stop web-worker and clear the component
     if (this.worker) {
       this.worker.terminate();
@@ -191,15 +194,24 @@ module.exports = class Reader extends Component {
     // IOS play in fullscreen
     preview.playsInline = true;
 
-    const streamTrack = stream.getTracks()[0];
+    const streamTracks = stream.getTracks();
     // Assign `stopCamera` so the track can be stopped once component is cleared
-    this.stopCamera = streamTrack.stop.bind(streamTrack);
+    this.stopCamera = streamTracks.forEach((track) => {
+      track.stop();
+    });
+
+    // Check if already unmounted
+    if ((this.isMountedComponent = false)) {
+      streamTracks.forEach((track) => {
+        track.stop();
+      });
+    }
 
     preview.addEventListener("loadstart", this.handleLoadStart);
 
     this.setState({
       mirrorVideo: facingMode == "user",
-      streamLabel: streamTrack.label,
+      streamLabel: streamTracks[0].label,
     });
   }
   handleLoadStart() {
