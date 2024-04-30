@@ -39,6 +39,7 @@ module.exports = class Reader extends Component {
   };
 
   els = {};
+  isMountedComponent = false;
 
   constructor(props) {
     super(props);
@@ -46,8 +47,6 @@ module.exports = class Reader extends Component {
     this.state = {
       mirrorVideo: false,
     };
-
-    this.isMounted = false;
 
     // Bind function to the class
     this.initiate = this.initiate.bind(this);
@@ -64,7 +63,7 @@ module.exports = class Reader extends Component {
   }
   componentDidMount() {
     // Initiate web worker execute handler according to mode.
-    this.isMounted = true;
+    this.isMountedComponent = true;
     this.worker = new Worker(URL.createObjectURL(workerBlob));
     this.worker.onmessage = this.handleWorkerMessage;
 
@@ -113,7 +112,7 @@ module.exports = class Reader extends Component {
   }
   componentWillUnmount() {
     // Stop web-worker and clear the component
-    this.isMounted = false;
+    this.isMountedComponent = false;
     if (this.worker) {
       this.worker.terminate();
       this.worker = undefined;
@@ -175,7 +174,7 @@ module.exports = class Reader extends Component {
     const { preview } = this.els;
     const { facingMode } = this.props;
 
-    if (this.isMounted === false) {
+    if (this.isMountedComponent === false) {
       stream.getTracks()[0].stop();
       return;
     }
