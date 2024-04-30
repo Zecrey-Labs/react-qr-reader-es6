@@ -47,6 +47,8 @@ module.exports = class Reader extends Component {
       mirrorVideo: false,
     };
 
+    this.isMounted = false;
+
     // Bind function to the class
     this.initiate = this.initiate.bind(this);
     this.initiateLegacyMode = this.initiateLegacyMode.bind(this);
@@ -62,6 +64,7 @@ module.exports = class Reader extends Component {
   }
   componentDidMount() {
     // Initiate web worker execute handler according to mode.
+    this.isMounted = true;
     this.worker = new Worker(URL.createObjectURL(workerBlob));
     this.worker.onmessage = this.handleWorkerMessage;
 
@@ -110,6 +113,7 @@ module.exports = class Reader extends Component {
   }
   componentWillUnmount() {
     // Stop web-worker and clear the component
+    this.isMounted = false;
     if (this.worker) {
       this.worker.terminate();
       this.worker = undefined;
@@ -163,7 +167,7 @@ module.exports = class Reader extends Component {
 
     vConstraintsPromise
       .then((video) => navigator.mediaDevices.getUserMedia({ video }))
-      .then(this.handleVideo, 0)
+      .then((stream) => this.handleVideo(stream, 0))
       .catch(onError);
   }
   handleVideo(stream, retryCount) {
@@ -171,12 +175,20 @@ module.exports = class Reader extends Component {
     const { preview } = this.els;
     const { facingMode } = this.props;
 
-    // Preview element hasn't been rendered so wait for it.
-    if (!preview && retryCount < 10) {
-      return setTimeout(() => this.handleVideo(stream, retryCount + 1), 200);
-    } else if (retryCount >= 10) {
-      console.log("Maximum retries reached, stopping.");
+    if (this.isMounted === false) {
+      stream.getTracks()[0].stop();
       return;
+    }
+
+    if (!preview) {
+      // Preview element hasn't been rendered so wait for it.
+      if (retryCount < 10) {
+        return setTimeout(() => this.handleVideo(stream, retryCount + 1), 200);
+      } else if (retryCount >= 10) {
+        stream.getTracks()[0].stop();
+        console.log("Maximum retries reached, stopping.");
+        return;
+      }
     }
 
     // Handle different browser implementations of MediaStreams as src
