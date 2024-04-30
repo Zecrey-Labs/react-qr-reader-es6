@@ -39,7 +39,6 @@ module.exports = class Reader extends Component {
   };
 
   els = {};
-  isMountedComponent = false;
 
   constructor(props) {
     super(props);
@@ -60,6 +59,9 @@ module.exports = class Reader extends Component {
     this.openImageDialog = this.openImageDialog.bind(this);
     this.handleWorkerMessage = this.handleWorkerMessage.bind(this);
     this.setRefFactory = this.setRefFactory.bind(this);
+
+    this.retryCount = 0;
+    this.maxRetries = 10;
   }
   componentDidMount() {
     // Initiate web worker execute handler according to mode.
@@ -71,7 +73,6 @@ module.exports = class Reader extends Component {
     } else {
       this.initiateLegacyMode();
     }
-    this.isMountedComponent = true;
   }
   componentDidUpdate(prevProps) {
     // React according to change in props
@@ -111,7 +112,6 @@ module.exports = class Reader extends Component {
     return changedProps.length > 0;
   }
   componentWillUnmount() {
-    this.isMountedComponent = false;
     // Stop web-worker and clear the component
     if (this.worker) {
       this.worker.terminate();
@@ -175,18 +175,12 @@ module.exports = class Reader extends Component {
     const { facingMode } = this.props;
 
     // Preview element hasn't been rendered so wait for it.
-    if (!preview) {
-      if (this.isMountedComponent === true) {
-        return setTimeout(this.handleVideo, 200, stream);
-      } else {
-        try {
-          stream.getTracks()[0].stop();
-          this.clearComponent();
-        } catch (e) {
-          console.log("No track");
-        }
-        return;
-      }
+    if (!preview && this.retryCount < this.maxRetries) {
+      this.retryCount++;
+      return setTimeout(() => this.handleVideo(stream), 200);
+    } else if (this.retryCount >= this.maxRetries) {
+      console.log("Maximum retries reached, stopping.");
+      return;
     }
 
     // Handle different browser implementations of MediaStreams as src
@@ -207,13 +201,7 @@ module.exports = class Reader extends Component {
 
     const streamTrack = stream.getTracks()[0];
     // Assign `stopCamera` so the track can be stopped once component is cleared
-    this.stopCamera = streamTrack.stop();
-
-    // Check if already unmounted
-    if ((this.isMountedComponent = false)) {
-      streamTrack.stop();
-      return;
-    }
+    this.stopCamera = streamTrack.stop.bind(streamTrack);
 
     preview.addEventListener("loadstart", this.handleLoadStart);
 
