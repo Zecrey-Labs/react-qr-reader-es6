@@ -176,7 +176,16 @@ module.exports = class Reader extends Component {
 
     // Preview element hasn't been rendered so wait for it.
     if (!preview && his.isMountedComponent === true) {
-      return setTimeout(this.handleVideo, 200, stream);
+      if (this.isMountedComponent === true) {
+        return setTimeout(this.handleVideo, 200, stream);
+      } else {
+        try {
+          stream.getTracks()[0].stop();
+        } catch (e) {
+          console.log("No track");
+        }
+        return;
+      }
     }
 
     // Handle different browser implementations of MediaStreams as src
