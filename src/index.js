@@ -175,7 +175,7 @@ module.exports = class Reader extends Component {
     const { facingMode } = this.props;
 
     // Preview element hasn't been rendered so wait for it.
-    if (!preview) {
+    if (!preview && his.isMountedComponent === true) {
       return setTimeout(this.handleVideo, 200, stream);
     }
 
