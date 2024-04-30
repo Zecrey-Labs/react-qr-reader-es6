@@ -170,6 +170,7 @@ module.exports = class Reader extends Component {
       .catch(onError);
   }
   handleVideo(stream) {
+    console.log("stream ready");
     const { preview } = this.els;
     const { facingMode } = this.props;
 
@@ -194,24 +195,21 @@ module.exports = class Reader extends Component {
     // IOS play in fullscreen
     preview.playsInline = true;
 
-    const streamTracks = stream.getTracks();
+    const streamTrack = stream.getTracks()[0];
     // Assign `stopCamera` so the track can be stopped once component is cleared
-    this.stopCamera = streamTracks.forEach((track) => {
-      track.stop();
-    });
+    this.stopCamera = streamTrack.stop();
 
     // Check if already unmounted
     if ((this.isMountedComponent = false)) {
-      streamTracks.forEach((track) => {
-        track.stop();
-      });
+      streamTrack.stop();
+      return;
     }
 
     preview.addEventListener("loadstart", this.handleLoadStart);
 
     this.setState({
       mirrorVideo: facingMode == "user",
-      streamLabel: streamTracks[0].label,
+      streamLabel: streamTrack.label,
     });
   }
   handleLoadStart() {
